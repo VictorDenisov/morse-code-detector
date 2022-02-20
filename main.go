@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"time"
 
 	gc "github.com/rthornton128/goncurses"
 )
@@ -10,6 +11,11 @@ const (
 	HEIGHT = 10
 	WIDTH  = 30
 )
+
+type Element struct {
+	d time.Duration
+	s bool
+}
 
 func main() {
 	stdscr, err := gc.Init()
@@ -38,6 +44,10 @@ func main() {
 
 	gc.MouseMask(gc.M_B1_PRESSED|gc.M_B1_RELEASED, nil) // only detect left mouse press and release
 
+	ds := make([]Element, 0)
+
+	lastTime := time.Now()
+
 	var key gc.Key
 	for key != 'q' {
 		key = stdscr.GetChar()
@@ -45,9 +55,22 @@ func main() {
 		case gc.KEY_MOUSE:
 			if md := gc.GetMouse(); md != nil {
 				if md.State == gc.M_B1_PRESSED {
+					newTime := time.Now()
+					dr := newTime.Sub(lastTime)
+					lastTime = newTime
+
+					ds = append(ds, Element{dr, false})
+
 					stdscr.MovePrintf(22, 0, "Mouse pressed = %3d/%c", key, key)
 				} else if md.State == gc.M_B1_RELEASED {
+					newTime := time.Now()
+					dr := newTime.Sub(lastTime)
+					lastTime = newTime
+
+					ds = append(ds, Element{dr, true})
+
 					stdscr.MovePrintf(22, 0, "Mouse released = %3d/%c", key, key)
+					stdscr.MovePrintf(24, 0, "Durations = %v", ds)
 				}
 			}
 			fallthrough
