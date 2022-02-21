@@ -55,6 +55,7 @@ func main() {
 		switch key {
 		case 'c':
 			ditMean, dahMean := inferSignals(ds)
+			ditGap, charGap, wordGap := inferGaps(ds)
 			res := make([]byte, len(ds))
 			for i := 0; i < len(ds); i++ {
 				if ds[i].s {
@@ -64,7 +65,15 @@ func main() {
 						res[i] = '-'
 					}
 				} else {
-					res[i] = ' '
+					if abs(ds[i].d-ditGap) < abs(ds[i].d-charGap) && abs(ds[i].d-ditGap) < abs(ds[i].d-wordGap) {
+						res[i] = ' '
+					}
+					if abs(ds[i].d-charGap) < abs(ds[i].d-ditGap) && abs(ds[i].d-charGap) < abs(ds[i].d-wordGap) {
+						res[i] = '|'
+					}
+					if abs(ds[i].d-wordGap) < abs(ds[i].d-ditGap) && abs(ds[i].d-wordGap) < abs(ds[i].d-charGap) {
+						res[i] = '>'
+					}
 				}
 			}
 			stdscr.MovePrintf(20, 0, "Durations %v", string(res))
@@ -103,6 +112,65 @@ func abs(x int) int {
 		return -x
 	}
 	return x
+}
+
+func inferGaps(ds []Element) (ditGap int, charGap int, wordGap int) {
+	unsortedGaps := make([]int, 0)
+	gaps := make([]int, 0)
+	for _, d := range ds {
+		if !d.s {
+			unsortedGaps = append(unsortedGaps, int(d.d))
+			gaps = append(gaps, int(d.d))
+		}
+	}
+	sort.IntSlice(gaps).Sort()
+
+	lastDitGap := gaps[0]
+	lastCharGap := lastDitGap * 3
+	lastWordGap := gaps[len(gaps)-1]
+
+	for {
+		border1 := 0
+		border2 := 0
+		for i, s := range gaps {
+			if abs(s-lastDitGap) > abs(s-lastCharGap) {
+				border1 = i
+				break
+			}
+		}
+		for i, s := range gaps {
+			if abs(s-lastCharGap) > abs(s-lastWordGap) {
+				border2 = i
+				break
+			}
+		}
+		ditGapMean := 0
+		for i := 0; i < border1; i++ {
+			ditGapMean += gaps[i]
+		}
+		ditGapMean /= border1
+
+		charGapMean := 0
+		for i := border1; i < border2; i++ {
+			charGapMean += gaps[i]
+		}
+		charGapMean /= border2 - border1
+
+		wordGapMean := 0
+		for i := border2; i < len(gaps); i++ {
+			wordGapMean += gaps[i]
+		}
+		wordGapMean /= border2 - border1
+
+		if ditGapMean == lastDitGap && charGapMean == lastCharGap && wordGapMean == lastWordGap {
+			break
+		}
+		lastDitGap = ditGapMean
+		lastCharGap = charGapMean
+		lastWordGap = wordGapMean
+	}
+
+	return lastDitGap, lastCharGap, lastWordGap
 }
 
 // K-means for classifying dots and dashes
