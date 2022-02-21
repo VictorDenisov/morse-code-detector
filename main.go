@@ -106,33 +106,33 @@ func inferSignals(ds []Element) ([]int, []int, string) {
 		}
 	}
 	sort.IntSlice(signals).Sort()
-	dotLen := signals[0]
+	ditLen := signals[0]
 	dahLen := signals[len(signals)-1]
 
-	lastDotMean := dotLen
+	lastDotMean := ditLen
 	lastDahMean := dahLen
 	for {
 		border := 0
 		for i, s := range signals {
-			if abs(s-dotLen) > abs(s-dahLen) {
+			if abs(s-ditLen) > abs(s-dahLen) {
 				border = i
 				break
 			}
 		}
-		dotMean := 0
+		ditMean := 0
 		for i := 0; i < border; i++ {
-			dotMean += signals[i]
+			ditMean += signals[i]
 		}
-		dotMean /= border
+		ditMean /= border
 		dahMean := 0
 		for i := border; i < len(signals); i++ {
 			dahMean += signals[i]
 		}
 		dahMean /= len(signals) - border
-		if dotMean == lastDotMean && dahMean == lastDahMean {
+		if ditMean == lastDotMean && dahMean == lastDahMean {
 			break
 		}
-		lastDotMean = dotMean
+		lastDotMean = ditMean
 		lastDahMean = dahMean
 	}
 
