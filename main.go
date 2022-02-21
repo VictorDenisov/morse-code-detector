@@ -65,7 +65,7 @@ func main() {
 					dr := newTime.Sub(lastTime)
 					lastTime = newTime
 
-					ds = append(ds, Element{dr, false})
+					ds = append(ds, Element{dr / 1000000, false})
 
 					stdscr.MovePrintf(22, 0, "Mouse pressed = %3d/%c", key, key)
 				} else if md.State == gc.M_B1_RELEASED {
@@ -73,7 +73,7 @@ func main() {
 					dr := newTime.Sub(lastTime)
 					lastTime = newTime
 
-					ds = append(ds, Element{dr, true})
+					ds = append(ds, Element{dr / 1000000, true})
 
 					stdscr.MovePrintf(22, 0, "Mouse released = %3d/%c", key, key)
 					stdscr.MovePrintf(24, 0, "Durations = %v", ds)
@@ -101,8 +101,8 @@ func inferSignals(ds []Element) ([]int, []int, string) {
 	signals := make([]int, 0)
 	for _, d := range ds {
 		if d.s {
-			unsortedSignals = append(unsortedSignals, int(int64(d.d)/1000000))
-			signals = append(signals, int(int64(d.d)/1000000))
+			unsortedSignals = append(unsortedSignals, int(d.d))
+			signals = append(signals, int(d.d))
 		}
 	}
 	sort.IntSlice(signals).Sort()
