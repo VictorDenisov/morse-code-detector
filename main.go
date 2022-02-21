@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"sort"
 	"time"
 
 	gc "github.com/rthornton128/goncurses"
@@ -52,6 +53,11 @@ func main() {
 	for key != 'q' {
 		key = stdscr.GetChar()
 		switch key {
+		case 'c':
+			unsortedDurations, durations, signals := inferSignals(ds)
+			stdscr.MovePrintf(19, 0, "Durations %v", unsortedDurations)
+			stdscr.MovePrintf(20, 0, "Durations %v", durations)
+			stdscr.MovePrintf(21, 0, "Signals %v", signals)
 		case gc.KEY_MOUSE:
 			if md := gc.GetMouse(); md != nil {
 				if md.State == gc.M_B1_PRESSED {
@@ -80,4 +86,63 @@ func main() {
 			stdscr.Refresh()
 		}
 	}
+}
+
+func abs(x int) int {
+	if x < 0 {
+		return -x
+	}
+	return x
+}
+
+// K-means for classifying dots and dashes
+func inferSignals(ds []Element) ([]int, []int, string) {
+	unsortedSignals := make([]int, 0)
+	signals := make([]int, 0)
+	for _, d := range ds {
+		if d.s {
+			unsortedSignals = append(unsortedSignals, int(int64(d.d)/1000000))
+			signals = append(signals, int(int64(d.d)/1000000))
+		}
+	}
+	sort.IntSlice(signals).Sort()
+	dotLen := signals[0]
+	dahLen := signals[len(signals)-1]
+
+	lastDotMean := dotLen
+	lastDahMean := dahLen
+	for {
+		border := 0
+		for i, s := range signals {
+			if abs(s-dotLen) > abs(s-dahLen) {
+				border = i
+				break
+			}
+		}
+		dotMean := 0
+		for i := 0; i < border; i++ {
+			dotMean += signals[i]
+		}
+		dotMean /= border
+		dahMean := 0
+		for i := border; i < len(signals); i++ {
+			dahMean += signals[i]
+		}
+		dahMean /= len(signals) - border
+		if dotMean == lastDotMean && dahMean == lastDahMean {
+			break
+		}
+		lastDotMean = dotMean
+		lastDahMean = dahMean
+	}
+
+	res := make([]byte, len(unsortedSignals))
+	for i := 0; i < len(unsortedSignals); i++ {
+		if abs(unsortedSignals[i]-lastDotMean) < abs(unsortedSignals[i]-lastDahMean) {
+			res[i] = '.'
+		} else {
+			res[i] = '-'
+		}
+	}
+	return unsortedSignals, signals, string(res)
 }
