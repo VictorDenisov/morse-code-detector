@@ -14,7 +14,7 @@ const (
 )
 
 type Element struct {
-	d time.Duration
+	d int
 	s bool
 }
 
@@ -54,10 +54,20 @@ func main() {
 		key = stdscr.GetChar()
 		switch key {
 		case 'c':
-			unsortedDurations, durations, signals := inferSignals(ds)
-			stdscr.MovePrintf(19, 0, "Durations %v", unsortedDurations)
-			stdscr.MovePrintf(20, 0, "Durations %v", durations)
-			stdscr.MovePrintf(21, 0, "Signals %v", signals)
+			ditMean, dahMean := inferSignals(ds)
+			res := make([]byte, len(ds))
+			for i := 0; i < len(ds); i++ {
+				if ds[i].s {
+					if abs(ds[i].d-ditMean) < abs(ds[i].d-dahMean) {
+						res[i] = '.'
+					} else {
+						res[i] = '-'
+					}
+				} else {
+					res[i] = ' '
+				}
+			}
+			stdscr.MovePrintf(20, 0, "Durations %v", string(res))
 		case gc.KEY_MOUSE:
 			if md := gc.GetMouse(); md != nil {
 				if md.State == gc.M_B1_PRESSED {
@@ -65,7 +75,7 @@ func main() {
 					dr := newTime.Sub(lastTime)
 					lastTime = newTime
 
-					ds = append(ds, Element{dr / 1000000, false})
+					ds = append(ds, Element{int(dr / 1000000), false})
 
 					stdscr.MovePrintf(22, 0, "Mouse pressed = %3d/%c", key, key)
 				} else if md.State == gc.M_B1_RELEASED {
@@ -73,7 +83,7 @@ func main() {
 					dr := newTime.Sub(lastTime)
 					lastTime = newTime
 
-					ds = append(ds, Element{dr / 1000000, true})
+					ds = append(ds, Element{int(dr / 1000000), true})
 
 					stdscr.MovePrintf(22, 0, "Mouse released = %3d/%c", key, key)
 					stdscr.MovePrintf(24, 0, "Durations = %v", ds)
@@ -96,7 +106,7 @@ func abs(x int) int {
 }
 
 // K-means for classifying dots and dashes
-func inferSignals(ds []Element) ([]int, []int, string) {
+func inferSignals(ds []Element) (int, int) {
 	unsortedSignals := make([]int, 0)
 	signals := make([]int, 0)
 	for _, d := range ds {
@@ -106,15 +116,13 @@ func inferSignals(ds []Element) ([]int, []int, string) {
 		}
 	}
 	sort.IntSlice(signals).Sort()
-	ditLen := signals[0]
-	dahLen := signals[len(signals)-1]
 
-	lastDotMean := ditLen
-	lastDahMean := dahLen
+	lastDotMean := signals[0]
+	lastDahMean := signals[len(signals)-1]
 	for {
 		border := 0
 		for i, s := range signals {
-			if abs(s-ditLen) > abs(s-dahLen) {
+			if abs(s-lastDotMean) > abs(s-lastDahMean) {
 				border = i
 				break
 			}
@@ -135,14 +143,5 @@ func inferSignals(ds []Element) ([]int, []int, string) {
 		lastDotMean = ditMean
 		lastDahMean = dahMean
 	}
-
-	res := make([]byte, len(unsortedSignals))
-	for i := 0; i < len(unsortedSignals); i++ {
-		if abs(unsortedSignals[i]-lastDotMean) < abs(unsortedSignals[i]-lastDahMean) {
-			res[i] = '.'
-		} else {
-			res[i] = '-'
-		}
-	}
-	return unsortedSignals, signals, string(res)
+	return lastDotMean, lastDahMean
 }
