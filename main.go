@@ -15,6 +15,74 @@ const (
 	WIDTH  = 30
 )
 
+type code string
+type letter string
+
+var (
+	alphabet = make(map[code]letter)
+	morse    = make(map[letter]code)
+)
+
+func init() {
+	alphabet[".-"] = "a"
+	alphabet["-..."] = "b"
+	alphabet["-.-."] = "c"
+	alphabet["-.."] = "d"
+	alphabet["."] = "e"
+	alphabet["..-."] = "f"
+	alphabet["--."] = "g"
+	alphabet["...."] = "h"
+	alphabet[".."] = "i"
+	alphabet[".---"] = "j"
+	alphabet["-.-"] = "k"
+	alphabet[".-.."] = "l"
+	alphabet["--"] = "m"
+	alphabet["-."] = "n"
+	alphabet["---"] = "o"
+	alphabet[".--."] = "p"
+	alphabet["--.-"] = "q"
+	alphabet[".-."] = "r"
+	alphabet["..."] = "s"
+	alphabet["-"] = "t"
+	alphabet["..-"] = "u"
+	alphabet["...-"] = "v"
+	alphabet[".--"] = "w"
+	alphabet["-..-"] = "x"
+	alphabet["-.--"] = "y"
+	alphabet["--.."] = "z"
+
+	alphabet["-----"] = "0"
+	alphabet[".----"] = "1"
+	alphabet["..---"] = "2"
+	alphabet["...--"] = "3"
+	alphabet["....-"] = "4"
+	alphabet["....."] = "5"
+	alphabet["-...."] = "6"
+	alphabet["--..."] = "7"
+	alphabet["---.."] = "8"
+	alphabet["----."] = "9"
+
+	alphabet["-...-"] = "="
+	alphabet["-..-."] = "/"
+	alphabet["..--.."] = "?"
+	alphabet["--..--"] = ","
+	alphabet[".-.-.-"] = "."
+	alphabet["-.--."] = "("
+	alphabet["-.--.-"] = ")"
+	alphabet[".-..."] = "&"
+	alphabet[".-.-."] = "+"
+	alphabet[".--.-."] = "@"
+	alphabet["---..."] = ":"
+	alphabet["-.-.-."] = ";"
+	// Prosigns:
+	alphabet[".-.-"] = "<aa>"
+	alphabet["........"] = "<hh>"
+
+	for code, letter := range alphabet {
+		morse[letter] = code
+	}
+}
+
 type Element struct {
 	d int
 	s bool
@@ -61,23 +129,33 @@ func main() {
 			charGap := dahMean
 			wordGap := 7 * ditGap
 			res := make([]byte, 0, len(ds))
+			char := make([]byte, 0, 4)
+			str := ""
 			for i := 0; i < len(ds); i++ {
 				if ds[i].s {
 					if abs(ds[i].d-ditMean) < abs(ds[i].d-dahMean) {
 						res = append(res, '.')
+						char = append(char, '.')
 					} else {
 						res = append(res, '-')
+						char = append(char, '-')
 					}
 				} else {
 					if abs(ds[i].d-charGap) < abs(ds[i].d-ditGap) && abs(ds[i].d-charGap) < abs(ds[i].d-wordGap) {
-						res = append(res, ' ')
+						res = append(res, '>')
+						str += string(alphabet[code(char)])
+						char = char[0:0]
 					}
 					if abs(ds[i].d-wordGap) < abs(ds[i].d-ditGap) && abs(ds[i].d-wordGap) < abs(ds[i].d-charGap) {
-						res = append(res, ' ')
-						res = append(res, ' ')
+						res = append(res, '<')
+						str += string(alphabet[code(char)])
+						str += " "
+						char = char[0:0]
 					}
 				}
 			}
+			str += string(alphabet[code(char)])
+			stdscr.MovePrintf(11, 0, "String %v", str)
 			stdscr.MovePrintf(20, 0, "Durations %v", string(res))
 		case gc.KEY_MOUSE:
 			if md := gc.GetMouse(); md != nil {
