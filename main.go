@@ -54,8 +54,8 @@ func main() {
 		key = stdscr.GetChar()
 		switch key {
 		case 'c':
-			ditMean, dahMean := inferSignals(ds)
-			ditGap, charGap, wordGap := inferGaps(ds)
+			ditMean, dahMean := classifySignals(ds)
+			ditGap, charGap, wordGap := classifyGaps(ds)
 			res := make([]byte, len(ds))
 			for i := 0; i < len(ds); i++ {
 				if ds[i].s {
@@ -114,7 +114,7 @@ func abs(x int) int {
 	return x
 }
 
-func inferGaps(ds []Element) (ditGap int, charGap int, wordGap int) {
+func classifyGaps(ds []Element) (ditGap int, charGap int, wordGap int) {
 	unsortedGaps := make([]int, 0)
 	gaps := make([]int, 0)
 	for _, d := range ds {
@@ -174,7 +174,7 @@ func inferGaps(ds []Element) (ditGap int, charGap int, wordGap int) {
 }
 
 // K-means for classifying dots and dashes
-func inferSignals(ds []Element) (int, int) {
+func classifySignals(ds []Element) (int, int) {
 	unsortedSignals := make([]int, 0)
 	signals := make([]int, 0)
 	for _, d := range ds {
