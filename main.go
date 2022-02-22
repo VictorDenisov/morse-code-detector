@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"os"
 	"sort"
 	"time"
 
@@ -115,6 +117,11 @@ func abs(x int) int {
 }
 
 func classifyGaps(ds []Element) (ditGap int, charGap int, wordGap int) {
+	f, err := os.Create("classifyGaps.log")
+	if err != nil {
+		os.Exit(1)
+	}
+	defer f.Close()
 	unsortedGaps := make([]int, 0)
 	gaps := make([]int, 0)
 	for _, d := range ds {
@@ -129,7 +136,10 @@ func classifyGaps(ds []Element) (ditGap int, charGap int, wordGap int) {
 	lastCharGap := lastDitGap * 3
 	lastWordGap := gaps[len(gaps)-1]
 
+	fmt.Fprintf(f, "Gaps: %v\n", gaps)
+
 	for {
+		fmt.Fprintf(f, "DitGap: %v, CharGap: %v, WordGap: %v\n", lastDitGap, lastCharGap, lastWordGap)
 		border1 := 0
 		border2 := 0
 		for i, s := range gaps {
@@ -144,6 +154,7 @@ func classifyGaps(ds []Element) (ditGap int, charGap int, wordGap int) {
 				break
 			}
 		}
+		fmt.Fprintf(f, "border1: %v, border2: %v\n", border1, border2)
 		ditGapMean := 0
 		for i := 0; i < border1; i++ {
 			ditGapMean += gaps[i]
@@ -160,7 +171,7 @@ func classifyGaps(ds []Element) (ditGap int, charGap int, wordGap int) {
 		for i := border2; i < len(gaps); i++ {
 			wordGapMean += gaps[i]
 		}
-		wordGapMean /= border2 - border1
+		wordGapMean /= len(gaps) - border2
 
 		if ditGapMean == lastDitGap && charGapMean == lastCharGap && wordGapMean == lastWordGap {
 			break
