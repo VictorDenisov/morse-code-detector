@@ -57,7 +57,9 @@ func main() {
 		switch key {
 		case 'c':
 			ditMean, dahMean := classifySignals(ds)
-			ditGap, charGap, wordGap := classifyGaps(ds)
+			ditGap := ditMean
+			charGap := dahMean
+			wordGap := 7 * ditGap
 			res := make([]byte, len(ds))
 			for i := 0; i < len(ds); i++ {
 				if ds[i].s {
