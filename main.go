@@ -60,23 +60,21 @@ func main() {
 			ditGap := ditMean
 			charGap := dahMean
 			wordGap := 7 * ditGap
-			res := make([]byte, len(ds))
+			res := make([]byte, 0, len(ds))
 			for i := 0; i < len(ds); i++ {
 				if ds[i].s {
 					if abs(ds[i].d-ditMean) < abs(ds[i].d-dahMean) {
-						res[i] = '.'
+						res = append(res, '.')
 					} else {
-						res[i] = '-'
+						res = append(res, '-')
 					}
 				} else {
-					if abs(ds[i].d-ditGap) < abs(ds[i].d-charGap) && abs(ds[i].d-ditGap) < abs(ds[i].d-wordGap) {
-						res[i] = ' '
-					}
 					if abs(ds[i].d-charGap) < abs(ds[i].d-ditGap) && abs(ds[i].d-charGap) < abs(ds[i].d-wordGap) {
-						res[i] = '|'
+						res = append(res, ' ')
 					}
 					if abs(ds[i].d-wordGap) < abs(ds[i].d-ditGap) && abs(ds[i].d-wordGap) < abs(ds[i].d-charGap) {
-						res[i] = '>'
+						res = append(res, ' ')
+						res = append(res, ' ')
 					}
 				}
 			}
